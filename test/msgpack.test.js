@@ -4,7 +4,7 @@ var Assert = require('assert')
 var Fs = require('fs')
 var Code = require('code')
 var Lab = require('lab')
-var Tcp = require('../lib/tcp')
+var Msgpack = require('../lib/msgpack')
 var TransportUtil = require('../lib/transport-utils')
 var ChildProcess = require('child_process')
 var Path = require('path')
@@ -17,7 +17,7 @@ var describe = lab.describe
 var it = lab.it
 var expect = Code.expect
 
-describe('Specific tcp', function () {
+describe('Specific msgpack', function () {
   it('client and listen work as expected', function (fin) {
     var instance = CreateInstance()
 
@@ -25,7 +25,7 @@ describe('Specific tcp', function () {
       done(null, { s: '1-' + args.d })
     })
 
-    instance.listen({type: 'tcp', port: 20102})
+    instance.listen({type: 'msgpack', port: 20102})
 
     instance.ready(function () {
       var seneca = this
@@ -39,9 +39,9 @@ describe('Specific tcp', function () {
         }
       }
 
-      CreateClient('tcp', 20102, check, 'cln0')
-      CreateClient('tcp', 20102, check, 'cln1')
-      CreateClient('tcp', 20102, check, 'cln2')
+      CreateClient('msgpack', 20102, check, 'cln0')
+      CreateClient('msgpack', 20102, check, 'cln1')
+      CreateClient('msgpack', 20102, check, 'cln2')
     })
   })
 
@@ -50,10 +50,10 @@ describe('Specific tcp', function () {
       .add('a:1', function (args, done) {
         done(new Error('bad-wire'))
       })
-      .listen({type: 'tcp', port: 40444})
+      .listen({type: 'msgpack', port: 40404})
 
     CreateInstance()
-      .client({type: 'tcp', port: 40444})
+      .client({type: 'msgpack', port: 40404})
       .act('a:1', function (err, out) {
         Assert.equal('seneca: Action a:1 failed: bad-wire.', err.message)
         fin()
@@ -63,7 +63,7 @@ describe('Specific tcp', function () {
   it('can listen on ephemeral port', function (done) {
     var seneca = CreateInstance()
 
-    var settings = {tcp: {port: 0, host: 'localhost'}}
+    var settings = {msgpack: {port: 0, host: 'localhost'}}
 
 
     var transportUtil = new TransportUtil({
@@ -72,11 +72,11 @@ describe('Specific tcp', function () {
       options: settings
     })
 
-    var tcp = Tcp.listen(settings, transportUtil)
+    var tcp = Msgpack.listen(settings, transportUtil)
 
     expect(typeof tcp).to.equal('function')
 
-    tcp.call(seneca, { type: 'tcp' }, function (err) {
+    tcp.call(seneca, { type: 'msgpack' }, function (err) {
       expect(err).to.not.exist()
       done()
     })
@@ -90,7 +90,7 @@ describe('Specific tcp', function () {
     }
 
     var seneca = CreateInstance()
-    var settings = {tcp: {path: sock}}
+    var settings = {msgpack: {path: sock}}
 
     var transportUtil = new TransportUtil({
       callmap: {},
@@ -98,10 +98,10 @@ describe('Specific tcp', function () {
       options: settings
     })
 
-    var tcp = Tcp.listen(settings, transportUtil)
+    var tcp = Msgpack.listen(settings, transportUtil)
     expect(typeof tcp).to.equal('function')
 
-    tcp.call(seneca, { type: 'tcp' }, function (err) {
+    tcp.call(seneca, { type: 'msgpack' }, function (err) {
       expect(err).to.not.exist()
       done()
     })
@@ -111,7 +111,7 @@ describe('Specific tcp', function () {
     var seneca1 = CreateInstance()
     var seneca2 = CreateInstance()
 
-    var settings1 = {tcp: {port: 0}}
+    var settings1 = {msgpack: {port: 0}}
 
     var transportUtil1 = new TransportUtil({
       callmap: {},
@@ -119,14 +119,14 @@ describe('Specific tcp', function () {
       options: settings1
     })
 
-    var tcp1 = Tcp.listen(settings1, transportUtil1)
+    var tcp1 = Msgpack.listen(settings1, transportUtil1)
     expect(typeof tcp1).to.equal('function')
 
-    tcp1.call(seneca1, { type: 'tcp' }, function (err, address) {
+    tcp1.call(seneca1, { type: 'msgpack' }, function (err, address) {
       expect(err).to.not.exist()
 
       var settings2 = {
-        tcp: {
+        msgpack: {
           port: address.port,
           max_listen_attempts: 10,
           attempt_delay: 10
@@ -138,14 +138,14 @@ describe('Specific tcp', function () {
         seneca: seneca2,
         options: settings2
       })
-      var tcp2 = Tcp.listen(settings2, transportUtil2)
+      var tcp2 = Msgpack.listen(settings2, transportUtil2)
       expect(typeof tcp2).to.equal('function')
 
       setTimeout(function () {
         seneca1.close()
       }, 20)
 
-      tcp2.call(seneca2, { type: 'tcp' }, function (err, address) {
+      tcp2.call(seneca2, { type: 'msgpack' }, function (err, address) {
         expect(err).to.not.exist()
         done()
       })
@@ -156,7 +156,7 @@ describe('Specific tcp', function () {
     var seneca = CreateInstance()
 
     var settings = {
-      tcp: {
+      msgpack: {
         port: 0
       }
     }
@@ -167,16 +167,16 @@ describe('Specific tcp', function () {
       options: settings
     })
 
-    var server = Tcp.listen(settings, transportUtil)
+    var server = Msgpack.listen(settings, transportUtil)
     expect(typeof server).to.equal('function')
 
-    server.call(seneca, { type: 'tcp' }, function (err, address) {
+    server.call(seneca, { type: 'msgpack' }, function (err, address) {
       expect(err).to.not.exist()
-      expect(address.type).to.equal('tcp')
-      settings.tcp.port = address.port
-      var client = Tcp.client(settings, transportUtil)
+      expect(address.type).to.equal('msgpack')
+      settings.msgpack.port = address.port
+      var client = Msgpack.client(settings, transportUtil)
       expect(typeof client).to.equal('function')
-      client.call(seneca, { type: 'tcp' }, function (err) {
+      client.call(seneca, { type: 'msgpack' }, function (err) {
         expect(err).to.not.exist()
         done()
       })

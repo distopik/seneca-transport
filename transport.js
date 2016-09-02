@@ -6,6 +6,7 @@
 var _ = require('lodash')
 var LruCache = require('lru-cache')
 var Tcp = require('./lib/tcp')
+var Msgpack = require('./lib/msgpack')
 var TransportUtil = require('./lib/transport-utils.js')
 var Http = require('./lib/http')
 
@@ -43,6 +44,12 @@ var internals = {
       host: '0.0.0.0',
       port: 10201,
       timeout: 5555
+    },
+    msgpack: {
+      type: 'msgpack',
+      host: '0.0.0.0',
+      port: 10202,
+      timeout: 5555
     }
   },
   plugin: 'transport'
@@ -68,6 +75,9 @@ module.exports = function transport (options) {
 
   seneca.add({ role: internals.plugin, hook: 'listen', type: 'web' }, Http.listen(settings, transportUtil))
   seneca.add({ role: internals.plugin, hook: 'client', type: 'web' }, Http.client(settings, transportUtil))
+
+  seneca.add({ role: internals.plugin, hook: 'listen', type: 'msgpack' }, Msgpack.listen(settings, transportUtil))
+  seneca.add({ role: internals.plugin, hook: 'client', type: 'msgpack' }, Msgpack.client(settings, transportUtil))
 
   // Aliases.
   seneca.add({ role: internals.plugin, hook: 'listen', type: 'http' }, Http.listen(settings, transportUtil))
